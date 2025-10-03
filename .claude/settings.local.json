@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app:*)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(del page.tsx)",
+      "Bash(ren:*)",
+      "Bash(move \"C:\\Users\\lumin\\Documents\\Code\\Test moneto web app\\app\\page.tsx\" \"C:\\Users\\lumin\\Documents\\Code\\Test moneto web app\\app\\home\\page.tsx\")",
+      "Bash(npm run dev:*)",
+      "Bash(npm view:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(mkdir:*)",
+      "WebSearch",
+      "mcp__ide__getDiagnostics"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "spinnerTipsEnabled": false
+}

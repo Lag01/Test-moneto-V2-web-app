@@ -1,0 +1,899 @@
+================================================================================
+                              MONETO - RÉSUMÉ DU PROJET
+                      Application de Gestion Financière Personnelle
+================================================================================
+
+📋 INFORMATIONS GÉNÉRALES
+================================================================================
+Nom du projet      : Moneto
+Version            : 2.0.0
+Type               : Progressive Web App (PWA) Next.js
+Licence            : ISC
+Description        : Application de gestion financière permettant de planifier
+                     et visualiser son budget mensuel avec revenus fixes,
+                     dépenses fixes et allocation en enveloppes.
+                     Support dark mode et fonctionnement offline.
+
+
+🛠️ TECHNOLOGIES PRINCIPALES
+================================================================================
+Framework          : Next.js 15.5.4 (App Router)
+Bibliothèque UI    : React 19.1.1
+Langage            : TypeScript 5.9.2
+Styling            : Tailwind CSS 4.1.13 (avec dark mode)
+Gestion d'état     : Zustand 5.0.8
+Stockage local     : localforage 1.10.0
+Graphiques         : recharts 3.2.1, d3-sankey 0.12.3
+Dates              : dayjs 1.11.18
+PWA                : next-pwa 5.6.0
+
+
+📁 STRUCTURE DU PROJET
+================================================================================
+
+RACINE/
+│
+├── app/                          # Pages Next.js (App Router)
+│   ├── globals.css              # Styles globaux + Tailwind + dark mode
+│   ├── layout.tsx               # Layout principal avec ThemeProvider et PWA meta
+│   ├── layout-with-nav.tsx      # Layout avec navigation sidebar
+│   ├── page.tsx                 # Page d'accueil avec notifications
+│   │
+│   ├── dashboard/
+│   │   └── page.tsx             # Dashboard - Liste plans + export/import JSON
+│   │
+│   ├── onboarding/
+│   │   └── page.tsx             # Onboarding - Revenus/Dépenses avec validation
+│   │
+│   ├── repartition/
+│   │   └── page.tsx             # Répartition - Allocation avec sliders validés
+│   │
+│   └── visualisation/
+│       └── page.tsx             # Visualisation - Sankey/Waterfall interactifs
+│
+├── components/                   # Composants React réutilisables
+│   ├── Navigation.tsx           # Sidebar avec ThemeToggle
+│   ├── ThemeProvider.tsx        # Context Provider pour le thème
+│   ├── ThemeToggle.tsx          # Bouton switch Light/Dark/System
+│   │
+│   ├── Graphiques
+│   ├── SankeyChart.tsx          # Diagramme Sankey avec tooltips
+│   └── WaterfallChart.tsx       # Graphique cascade
+│   │
+│   ├── Formulaires avec Validation
+│   ├── FixedItemInput.tsx       # Input ligne revenus/dépenses validé
+│   ├── IncomeExpenseForm.tsx    # Formulaire complet revenus/dépenses
+│   ├── PercentageSlider.tsx     # Slider pourcentage validé
+│   ├── EnvelopeAllocator.tsx    # Gestion enveloppes avec validation
+│   └── BudgetValidation.tsx     # Composant validation visuelle
+│   │
+│   ├── Messages et Erreurs
+│   ├── ValidationError.tsx      # Message erreur inline
+│   ├── ErrorMessage.tsx         # Bannière erreur
+│   ├── SuccessMessage.tsx       # Bannière succès
+│   └── NotificationBanner.tsx   # Notification contextuelles
+│
+├── lib/                          # Utilitaires et helpers
+│   ├── storage.ts               # Service localforage
+│   ├── financial.ts             # Formatage et calculs financiers
+│   ├── utils.ts                 # Utilitaires généraux
+│   ├── monthly-plan.ts          # Calculs et validation plans
+│   ├── plan-calculator.ts       # Moteur de calcul principal
+│   ├── validation.ts            # Fonctions validation réutilisables
+│   ├── notifications.ts         # Détection alertes budget
+│   └── export-import.ts         # Export/import JSON des plans
+│
+├── store/                        # Gestion d'état Zustand
+│   └── index.ts                 # Store avec persistance + thème
+│
+├── public/                       # Assets statiques
+│   ├── manifest.json            # Manifest PWA
+│   ├── icons/                   # Icônes PWA (72-512px)
+│   │   └── README.md            # Instructions génération icônes
+│   └── sw.js, workbox-*.js      # Service Worker (généré au build)
+│
+├── Configuration
+│   ├── tailwind.config.ts       # Tailwind + darkMode: 'class'
+│   ├── postcss.config.mjs       # PostCSS
+│   ├── tsconfig.json            # TypeScript
+│   ├── next.config.ts           # Next.js + next-pwa
+│   ├── eslint.config.mjs        # ESLint
+│   ├── package.json             # Dépendances + scripts
+│   └── .gitignore               # Exclusion fichiers générés PWA
+│
+└── Documentation
+    ├── README.md                # Documentation générale
+    ├── STORE_GUIDE.md           # Guide complet du store Zustand
+    └── PROJET_RESUME.txt        # Ce fichier (documentation complète)
+
+
+🎯 FONCTIONNALITÉS PRINCIPALES
+================================================================================
+
+1. DASHBOARD
+   - Liste de tous les plans mensuels créés
+   - Création d'un nouveau plan
+   - Copie d'un plan existant (modal de sélection)
+   - Actions : Modifier, Visualiser, Exporter, Supprimer
+   - Export JSON par plan (moneto-plan-YYYY-MM.json)
+   - Export global de tous les plans
+   - Import JSON avec validation stricte
+   - Affichage des résumés financiers par plan
+   - Support dark mode complet
+
+2. ONBOARDING (Revenus et Dépenses fixes)
+   - Formulaires avec validation en temps réel
+   - Ajout/suppression de revenus fixes
+   - Ajout/suppression de dépenses fixes
+   - Validation : noms non vides, montants positifs
+   - Feedback visuel sur erreurs (ring rouge)
+   - Messages d'erreur sous les champs
+   - Calcul automatique du reste disponible
+   - Validation avant passage à la répartition
+   - Composants réutilisables (IncomeExpenseForm)
+
+3. RÉPARTITION (Allocation en enveloppes)
+   - Enveloppes par défaut (Épargne, Loisirs, Livret A, Crypto)
+   - Ajout d'enveloppes personnalisées
+   - Sliders et inputs synchronisés avec validation
+   - Validation pourcentage 0-100%
+   - Validation totale = 100% avec barre visuelle
+   - Bouton "Ajuster à 100%" (normalisation automatique)
+   - Calcul en temps réel des montants
+   - Affichage erreurs si total ≠ 100%
+   - Couleurs personnalisées par enveloppe
+
+4. VISUALISATION
+   - Sélecteur de mois
+   - Résumé financier complet
+   - Graphique Waterfall interactif (cascade des flux)
+   - Diagramme Sankey avec tooltips (visualisation des flux)
+   - Structure 3 niveaux : Revenus → Dépenses/Disponible → Enveloppes
+   - Légende avec code couleur
+   - Détails des revenus, dépenses et enveloppes
+   - Validation du budget avec feedback visuel
+
+5. NAVIGATION
+   - Sidebar persistante avec liens
+   - Indicateur de page active
+   - ThemeToggle intégré (Light/Dark/System)
+   - Retour à l'accueil
+   - Support dark mode
+
+6. PAGE D'ACCUEIL
+   - Système de notifications intelligentes
+   - Alertes contextuelles selon état du budget
+   - Boutons d'action pour corriger
+   - Possibilité de dismiss les notifications
+   - Présentation des fonctionnalités
+   - CTA vers Dashboard
+
+
+✅ SYSTÈME DE VALIDATION DES ENTRÉES
+================================================================================
+
+FICHIERS CRÉÉS :
+- lib/validation.ts              # Fonctions validation réutilisables
+- components/ValidationError.tsx # Message erreur inline
+- components/ErrorMessage.tsx    # Bannière erreur complète
+- components/SuccessMessage.tsx  # Bannière succès
+
+VALIDATIONS IMPLÉMENTÉES :
+✓ Noms non vides (1-50 caractères)
+✓ Montants positifs uniquement (0 à 999,999,999)
+✓ Pourcentages valides (0-100%)
+✓ Sanitization des chaînes (anti-XSS)
+✓ Validation format mois (YYYY-MM)
+✓ Validation somme pourcentages = 100%
+✓ Validation email (si besoin futur)
+
+COMPOSANTS AVEC VALIDATION :
+- FixedItemInput.tsx
+  → Validation nom + montant
+  → Feedback visuel (ring rouge si erreur)
+  → Messages d'erreur sous les champs
+  → Montants négatifs bloqués
+
+- PercentageSlider.tsx
+  → Validation 0-100%
+  → Feedback visuel sur dépassement
+  → Messages d'erreur contextuels
+
+- EnvelopeAllocator.tsx
+  → Validation totale = 100%
+  → Barre de progression visuelle
+  → Code couleur (vert=OK, orange/rouge=erreur)
+  → Bouton auto-ajustement
+
+FONCTIONS DISPONIBLES (lib/validation.ts) :
+- validateName(name)              # Vérifie nom non vide
+- validateAmount(amount)          # Vérifie montant positif
+- validatePercentage(percentage)  # Vérifie 0-100%
+- validateMonth(month)            # Vérifie format YYYY-MM
+- validateEmail(email)            # Vérifie format email
+- validateTotalPercentage(array)  # Vérifie somme = 100%
+- validateNotEmpty(array)         # Vérifie tableau non vide
+- validateMultiple(validations)   # Combine plusieurs validations
+- sanitizeString(input)           # Nettoie chaîne (anti-XSS)
+- formatNumber(value)             # Formate nombre pour affichage
+
+
+🎨 SYSTÈME DE THÈME DARK MODE
+================================================================================
+
+CONFIGURATION :
+- Tailwind : darkMode: 'class'
+- Variables CSS : --background, --foreground
+- Transitions fluides : 0.3s ease
+- Scrollbar personnalisée pour dark mode
+
+FICHIERS CRÉÉS/MODIFIÉS :
+- tailwind.config.ts              # Activation dark mode
+- app/globals.css                 # Variables CSS + scrollbar custom
+- components/ThemeProvider.tsx    # Context Provider React
+- components/ThemeToggle.tsx      # Bouton switch avec 3 modes
+- store/index.ts                  # Ajout theme dans UserSettings
+
+FONCTIONNALITÉS :
+✓ 3 modes disponibles : Light, Dark, System
+  - Light : Fond blanc, textes sombres
+  - Dark : Fond slate-900, textes clairs
+  - System : Suit préférences OS (prefers-color-scheme)
+
+✓ ThemeProvider
+  - Détecte préférence système
+  - Écoute changements système en temps réel
+  - Applique classe 'dark' sur <html>
+  - Gère le state avec Zustand
+
+✓ ThemeToggle
+  - 3 états rotatifs : System → Light → Dark → System
+  - Icônes adaptées : 🖥️ System, ☀️ Light, 🌙 Dark
+  - Label explicite du mode actif
+  - Intégré dans la navigation
+
+✓ Persistance
+  - Choix sauvegardé dans Zustand
+  - Persisté dans IndexedDB via localforage
+  - Restauré au chargement de l'app
+  - Pas de flash de contenu (suppressHydrationWarning)
+
+COMPOSANTS ADAPTÉS POUR DARK MODE :
+Tous les composants utilisent les classes Tailwind dark:
+- Navigation → dark:bg-slate-950
+- Cartes → dark:bg-slate-800
+- Inputs → dark:bg-slate-700
+- Textes → dark:text-slate-100/200/300
+- Bordures → dark:border-slate-600/700
+- Messages → dark:bg-{color}-900/20
+- Boutons → Hover states adaptés
+
+COULEURS PRINCIPALES :
+Light Mode :
+- Background : #ffffff (blanc)
+- Foreground : #1e293b (slate-800)
+- Accents : emerald-600, blue-600, red-600
+
+Dark Mode :
+- Background : #0f172a (slate-950)
+- Foreground : #f1f5f9 (slate-100)
+- Accents : emerald-400, blue-400, red-400
+
+
+🔔 SYSTÈME DE NOTIFICATIONS IN-APP
+================================================================================
+
+FICHIERS CRÉÉS :
+- lib/notifications.ts            # Logique détection alertes
+- components/NotificationBanner.tsx # Composant notification
+
+TYPES DE NOTIFICATIONS :
+1. ⚠️ Warning : Aucun plan pour le mois en cours
+   → Action : "Créer un plan"
+
+2. ❌ Error : Budget incomplet - Pas de revenus
+   → Action : "Ajouter des revenus"
+
+3. ❌ Error : Budget incomplet - Pas de dépenses
+   → Action : "Ajouter des dépenses"
+
+4. ❌ Error : Budget déséquilibré (dépenses > revenus)
+   → Action : "Ajuster le budget"
+
+5. ⚠️ Warning : Répartition manquante (pas d'enveloppes)
+   → Action : "Répartir le budget"
+
+6. ⚠️ Warning : Pourcentages ne font pas 100%
+   → Action : "Ajuster les pourcentages"
+
+7. ✅ Success : Budget complet et validé !
+   → Action : "Voir la visualisation"
+
+FONCTIONNALITÉS :
+✓ Détection automatique au chargement
+✓ Affichage sur la page d'accueil
+✓ Boutons d'action avec liens directs
+✓ Possibilité de dismiss (fermer)
+✓ Couleurs adaptées par type :
+  - Error : rouge
+  - Warning : orange
+  - Success : vert
+  - Info : bleu
+✓ Icônes contextuelles par type
+✓ Support dark mode complet
+✓ Transition fluide
+
+FONCTION PRINCIPALE (lib/notifications.ts) :
+getCurrentMonthStatus(plans) :
+  - Détecte le mois en cours (YYYY-MM)
+  - Trouve le plan correspondant
+  - Analyse l'état du plan :
+    * Présence de revenus/dépenses
+    * Équilibre du budget
+    * Complétude des enveloppes
+    * Validation des pourcentages
+  - Retourne notifications[] à afficher
+
+getGeneralStats(plans) :
+  - Statistiques globales sur tous les plans
+  - Nombre de plans complets
+  - Moyennes revenus/dépenses/épargne
+
+
+📱 PROGRESSIVE WEB APP (PWA)
+================================================================================
+
+CONFIGURATION COMPLÈTE :
+
+1. MANIFEST.JSON (public/manifest.json)
+   ✓ Nom : "Moneto - Gestion Financière"
+   ✓ Nom court : "Moneto"
+   ✓ Display : standalone (app native)
+   ✓ Background color : #ffffff
+   ✓ Theme color : #10b981 (emerald)
+   ✓ Orientation : portrait-primary
+   ✓ Icônes : 72, 96, 128, 144, 152, 192, 384, 512px
+   ✓ Shortcuts : Dashboard, Nouveau Plan
+   ✓ Categories : finance, productivity
+
+2. SERVICE WORKER (next-pwa)
+   Package : next-pwa ^5.6.0
+   Configuration dans next.config.ts :
+
+   Stratégies de cache :
+   - CacheFirst : Fonts, audio, video (durée longue)
+   - StaleWhileRevalidate : Images, JS, CSS (24h)
+   - NetworkFirst : Pages, données JSON (10s timeout)
+
+   Caches configurés :
+   - google-fonts-webfonts (1 an)
+   - google-fonts-stylesheets (1 semaine)
+   - static-font-assets (1 semaine)
+   - static-image-assets (24h)
+   - static-js-assets (24h)
+   - static-style-assets (24h)
+   - next-data (24h)
+   - static-data-assets (24h)
+
+   Comportement :
+   - Désactivé en développement
+   - Actif en production
+   - Génération automatique au build
+   - Fichiers dans public/ (exclus de git)
+
+3. META TAGS PWA (app/layout.tsx)
+   ✓ manifest : /manifest.json
+   ✓ apple-web-app-capable : true
+   ✓ apple-web-app-status-bar-style : default
+   ✓ apple-web-app-title : Moneto
+   ✓ theme-color : Adaptatif light/dark
+   ✓ viewport : Optimisé mobile
+   ✓ icons : 192x192, 512x512
+
+FONCTIONNEMENT OFFLINE :
+✓ Données stockées dans IndexedDB (via localforage)
+✓ Assets statiques en cache (service worker)
+✓ Pages principales en cache
+✓ Graphiques fonctionnent offline
+✓ Ajout/modification de plans offline
+✓ Synchronisation automatique quand online
+
+INSTALLATION :
+1. Build : npm run build
+2. Start : npm start
+3. Ouvrir navigateur (Chrome/Edge/Safari iOS 16.4+)
+4. Cliquer icône installation (barre adresse)
+5. Suivre instructions navigateur
+6. App ajoutée à l'écran d'accueil
+
+COMPATIBILITÉ :
+✓ Chrome/Edge : Installation desktop + mobile
+✓ Firefox : Service Worker (pas installation)
+✓ Safari iOS 16.4+ : Installation + Service Worker
+✓ Samsung Internet : Installation + Service Worker
+
+ICÔNES PWA :
+Les icônes doivent être créées manuellement dans public/icons/
+Voir public/icons/README.md pour instructions
+Tailles : 72, 96, 128, 144, 152, 192, 384, 512 pixels
+Format : PNG
+Couleur suggérée : #10b981 (emerald-600)
+
+
+💾 STORE ZUSTAND - GESTION D'ÉTAT
+================================================================================
+
+TYPES PRINCIPAUX :
+
+1. MonthlyPlan
+   - id : Identifiant unique
+   - month : Mois au format YYYY-MM
+   - fixedIncomes : Array<FixedItem>
+   - fixedExpenses : Array<FixedItem>
+   - envelopes : Array<Envelope>
+   - calculatedResults : CalculatedResults
+   - createdAt, updatedAt
+
+2. FixedItem (Revenus/Dépenses fixes)
+   - id, name, amount
+
+3. Envelope (Enveloppe d'allocation)
+   - id, name, percentage, amount
+
+4. CalculatedResults (Résultats calculés)
+   - totalIncome : Total des revenus
+   - totalExpenses : Total des dépenses fixes
+   - availableAmount : Reste disponible
+   - totalEnvelopes : Total alloué en enveloppes
+   - finalBalance : Solde final
+   - lastCalculated : Timestamp
+
+5. UserSettings (Paramètres utilisateur)
+   - firstDayOfMonth : 1-28 (début cycle budgétaire)
+   - currency : EUR, USD, etc.
+   - locale : fr-FR, en-US, etc.
+   - autoAdjustPercentages : true/false
+   - theme : 'light' | 'dark' | 'system'
+
+
+ACTIONS DU STORE :
+
+Plans mensuels :
+- addMonthlyPlan(month) → Crée un nouveau plan
+- updateMonthlyPlan(id, plan) → Met à jour un plan
+- deleteMonthlyPlan(id) → Supprime un plan
+- getMonthlyPlan(id) → Récupère un plan
+- copyMonthlyPlan(sourceId, newMonth) → Copie un plan
+- setCurrentMonth(id) → Définit le plan actif
+- importMonthlyPlanFromData(planData) → Importe depuis JSON
+
+Calculs automatiques :
+- recalculatePlan(id) → Recalcule tous les résultats
+- normalizeEnvelopesForPlan(id) → Ajuste les % à 100%
+
+Paramètres :
+- updateUserSettings(settings) → Modifie paramètres (theme inclus)
+
+
+📊 LOGIQUE DE CALCUL BUDGÉTAIRE
+================================================================================
+
+Le système suit cette logique stricte :
+
+1. Total Revenus = Σ(revenus fixes)
+2. Total Dépenses = Σ(dépenses fixes)
+3. Reste Disponible = Total Revenus - Total Dépenses
+4. Pour chaque enveloppe :
+   Montant = (Reste Disponible × Pourcentage) / 100
+5. Total Enveloppes = Σ(montants enveloppes)
+6. Solde Final = Reste Disponible - Total Enveloppes
+
+Validation :
+- Σ(pourcentages enveloppes) = 100%
+- Si autoAdjustPercentages = true : ajustement automatique proportionnel
+- Si autoAdjustPercentages = false : erreur si ≠ 100%
+- Montants négatifs bloqués à la saisie
+- Noms vides bloqués à la saisie
+
+
+🔧 UTILITAIRES ET HELPERS
+================================================================================
+
+lib/storage.ts
+- StorageService : Wrapper pour localforage
+- Méthodes : get(), set(), remove(), clear(), keys()
+- Gestion d'erreurs intégrée
+
+lib/financial.ts
+- formatCurrency(amount) : Formatage en euros
+- formatDate(date, format) : Formatage de dates
+- calculateTotal(amounts) : Somme d'un tableau
+- calculatePercentage(amount, total) : Calcul de %
+- calculateBalance(income, expenses) : Calcul du solde
+- getDateRange(period) : Plages de dates
+- getMonthName(date) : Nom du mois
+
+lib/monthly-plan.ts
+- calculateFixedTotal(items) : Total des éléments fixes
+- calculateAvailableAmount(incomes, expenses) : Reste disponible
+- normalizeEnvelopePercentages(envelopes) : Ajuste à 100%
+- recalculateEnvelopeAmounts(envelopes, available) : Recalcule montants
+- validateEnvelopesPercentage(envelopes) : Vérifie = 100%
+- getTotalPercentage(envelopes) : Total des %
+- getPlanSummary(plan) : Résumé complet
+- validateMonthlyPlan(plan) : Validation complète
+
+lib/plan-calculator.ts
+- calculatePlanResults(plan) : Calcule tous les résultats
+- createCalculatedPlan(month, id) : Crée un plan vide
+
+lib/validation.ts
+- validateName(name) : Vérifie nom non vide
+- validateAmount(amount) : Vérifie montant positif
+- validatePercentage(percentage) : Vérifie 0-100%
+- validateMonth(month) : Vérifie format YYYY-MM
+- validateEmail(email) : Vérifie format email
+- validateTotalPercentage(percentages) : Vérifie somme = 100%
+- validateNotEmpty(array, itemName) : Vérifie non vide
+- validateMultiple(validations) : Combine validations
+- sanitizeString(input) : Nettoie chaîne (anti-XSS)
+- formatNumber(value) : Formate nombre pour affichage
+
+lib/notifications.ts
+- getCurrentMonthStatus(plans) : Détecte alertes budget
+- getGeneralStats(plans) : Statistiques globales
+
+lib/export-import.ts
+- exportMonthlyPlanToJSON(plan) : Exporte un plan
+- exportAllPlansToJSON(plans) : Exporte tous les plans
+- importMonthlyPlanFromJSON(file) : Importe avec validation
+- importAllPlansFromJSON(file) : Importe plusieurs plans
+
+
+🎨 COMPOSANTS REACT
+================================================================================
+
+NAVIGATION ET THÈME :
+Navigation.tsx
+- Sidebar avec liens vers toutes les pages
+- Indicateur de page active
+- ThemeToggle intégré
+- Retour à l'accueil
+- Support dark mode
+
+ThemeProvider.tsx
+- Context Provider React pour le thème
+- Détection préférence système
+- Écoute changements temps réel
+- Application classe 'dark' sur <html>
+
+ThemeToggle.tsx
+- Bouton switch 3 modes : Light/Dark/System
+- Icônes adaptées par mode
+- Label explicite
+- Transitions fluides
+
+GRAPHIQUES :
+SankeyChart.tsx
+- Diagramme de flux Sankey avec d3-sankey
+- Structure 3 niveaux : Revenus → Dépenses/Disponible → Enveloppes
+- Tooltips interactifs
+- Légende avec code couleur
+- Responsive (viewBox)
+
+WaterfallChart.tsx
+- Graphique en cascade avec recharts
+- Cascade : Revenus → Dépenses → Enveloppes → Solde
+- Résumé financier intégré
+- Barres flottantes
+- Couleurs adaptatives
+
+FORMULAIRES AVEC VALIDATION :
+FixedItemInput.tsx
+- Input ligne unique pour revenu/dépense
+- Validation nom + montant en temps réel
+- Feedback visuel (ring rouge si erreur)
+- Messages d'erreur sous le champ
+- Bouton supprimer avec icône
+- Support dark mode
+
+IncomeExpenseForm.tsx
+- Formulaire complet revenus ou dépenses
+- Liste dynamique d'items
+- Ajout/suppression
+- Calcul total en temps réel
+- Statistiques (nombre, total)
+- Enter pour ajouter
+
+PercentageSlider.tsx
+- Slider + input synchronisés
+- Validation 0-100%
+- Barre de progression visuelle
+- Affichage montant calculé
+- Messages d'erreur si dépassement
+- Couleur personnalisée par enveloppe
+
+EnvelopeAllocator.tsx
+- Gestion complète des enveloppes
+- Liste d'enveloppes avec sliders
+- Ajout d'enveloppe personnalisée
+- Validation totale = 100%
+- Barre de validation avec code couleur
+- Bouton "Ajuster à 100%"
+- Résumé (nombre, montant total)
+
+BudgetValidation.tsx
+- Composant validation visuelle
+- État validé (vert) ou erreurs (rouge)
+- Liste des erreurs détaillée
+- Bouton correction automatique
+- Support dark mode
+
+MESSAGES ET NOTIFICATIONS :
+ValidationError.tsx
+- Message erreur inline (petit, sous champ)
+- Texte rouge adaptatif light/dark
+
+ErrorMessage.tsx
+- Bannière erreur complète
+- Icône erreur
+- Bouton dismiss optionnel
+- Support dark mode
+
+SuccessMessage.tsx
+- Bannière succès complète
+- Icône succès
+- Bouton dismiss optionnel
+- Support dark mode
+
+NotificationBanner.tsx
+- Notification contextuelle
+- 4 types : error, warning, success, info
+- Icônes adaptées par type
+- Couleurs adaptées par type
+- Bouton action avec lien
+- Bouton dismiss
+- Support dark mode
+
+
+💿 PERSISTANCE DES DONNÉES
+================================================================================
+
+Système de stockage :
+- Utilise localforage (IndexedDB)
+- Wrapper Zustand persist middleware
+- Nom du store : "moneto-storage"
+- Version : 2
+
+Fonctionnalités :
+- Sauvegarde automatique à chaque modification
+- Restauration au chargement de l'app
+- Callback onRehydrateStorage pour recalcul automatique
+- Migration automatique des anciens formats
+
+Données persistées :
+- Tous les plans mensuels (monthlyPlans)
+- Plan actif (currentMonthId)
+- Paramètres utilisateur (userSettings + theme)
+- Catégories (categories)
+- Transactions (transactions)
+
+PWA Mode Offline :
+- Données en IndexedDB (fonctionnent offline)
+- Assets en cache (Service Worker)
+- Pages principales en cache
+- Graphiques fonctionnent offline
+- Synchronisation auto quand reconnecté
+
+
+🚀 SCRIPTS NPM DISPONIBLES
+================================================================================
+
+npm run dev        → Lance le serveur de développement (http://localhost:3000)
+npm run build      → Compile l'application pour la production (+ génère PWA)
+npm run start      → Lance le serveur de production
+npm run lint       → Vérifie le code avec ESLint
+
+
+📦 DÉPENDANCES COMPLÈTES
+================================================================================
+
+PRODUCTION :
+- @types/node ^24.6.0
+- @types/react ^19.1.16
+- @types/react-dom ^19.1.9
+- d3-sankey ^0.12.3
+- d3-scale ^4.0.2
+- d3-selection ^3.0.0
+- d3-shape ^3.2.0
+- dayjs ^1.11.18
+- localforage ^1.10.0
+- next ^15.5.4
+- next-pwa ^5.6.0          ← PWA
+- react ^19.1.1
+- react-dom ^19.1.1
+- recharts ^3.2.1
+- typescript ^5.9.2
+- zustand ^5.0.8
+
+DÉVELOPPEMENT :
+- @eslint/eslintrc ^3.3.1
+- @types/d3-sankey ^0.12.4
+- autoprefixer ^10.4.21
+- eslint ^9.36.0
+- eslint-config-next ^15.5.4
+- postcss ^8.5.6
+- tailwindcss ^4.1.13
+
+
+🎨 CONFIGURATION TAILWIND
+================================================================================
+
+Configuration :
+- darkMode: 'class'          ← Activation dark mode
+- Content: app/**, components/**, pages/**
+- Plugins: Aucun (config de base)
+
+Classes personnalisées :
+- Couleurs : emerald (principal), blue, red, purple, slate
+- Variables CSS : --background, --foreground
+- Responsive : mobile-first avec breakpoints md, lg
+
+Dark Mode :
+- Activation via classe 'dark' sur <html>
+- Toutes les couleurs adaptées avec dark:
+- Scrollbar personnalisée :
+  - Light : #cbd5e1 → #94a3b8 (hover)
+  - Dark : #475569 → #64748b (hover)
+
+Breakpoints :
+- md: 768px (tablettes)
+- lg: 1024px (desktop)
+
+
+⚙️ CONFIGURATION TYPESCRIPT
+================================================================================
+
+Paramètres :
+- Cible : ES2020
+- Mode strict : Activé
+- Alias de chemins : @/* → ./*
+- Module : ESNext
+- JSX : preserve (pour Next.js)
+- Plugin Next.js intégré
+
+
+🔐 SÉCURITÉ ET BONNES PRATIQUES
+================================================================================
+
+✓ Validation stricte des données (lib/validation.ts)
+✓ Sanitization des entrées utilisateur (anti-XSS)
+✓ Gestion d'erreurs dans tous les helpers
+✓ TypeScript strict mode
+✓ ESLint avec règles Next.js
+✓ Pas de données sensibles stockées
+✓ Stockage local uniquement (pas de backend)
+✓ Montants limités pour éviter overflow (999,999,999 max)
+✓ localStorage sécurisé avec localforage
+✓ Service Worker en cache sécurisé
+
+
+🚀 PERFORMANCE
+================================================================================
+
+✓ Lazy loading des composants
+✓ Optimisation des images Next.js
+✓ Service Worker avec stratégies de cache intelligentes
+✓ CSS optimisé avec Tailwind purge
+✓ Recharts avec transpilation optimisée
+✓ IndexedDB pour données (plus rapide que localStorage)
+✓ Calculs optimisés en temps réel
+✓ Dark mode sans flash (suppressHydrationWarning)
+
+
+📱 COMPATIBILITÉ
+================================================================================
+
+Navigateurs supportés :
+- Chrome/Edge (desktop & mobile) - Recommandé
+- Firefox (desktop & mobile)
+- Safari (iOS & macOS)
+- Samsung Internet
+
+Features PWA :
+- Installation : ✓ Chrome, Edge, Safari iOS 16.4+
+- Service Worker : ✓ Tous navigateurs modernes
+- Offline : ✓ Grâce à IndexedDB
+
+Design Responsive :
+- Mobile-first approach
+- Breakpoints : md (768px+), lg (1024px+)
+- Grilles adaptatives
+- Navigation adaptative
+- Formulaires optimisés mobile
+
+
+📝 NOTES IMPORTANTES
+================================================================================
+
+1. L'application fonctionne entièrement côté client (pas de backend)
+2. Toutes les données sont stockées localement dans IndexedDB
+3. Les calculs sont effectués automatiquement et en temps réel
+4. La validation des pourcentages peut être automatique ou stricte
+5. Le store Zustand gère la persistance et le recalcul automatique
+6. Les graphiques sont générés dynamiquement à partir des données
+7. L'interface est responsive et optimisée pour desktop/mobile
+8. Le dark mode suit les préférences OS par défaut
+9. L'app fonctionne offline une fois installée (PWA)
+10. Les données peuvent être exportées/importées en JSON
+
+ICÔNES PWA :
+Les icônes doivent être créées manuellement dans public/icons/
+Voir public/icons/README.md pour les instructions complètes
+Tailles requises : 72, 96, 128, 144, 152, 192, 384, 512 pixels
+Format : PNG recommandé
+Couleur principale suggérée : #10b981 (emerald-600)
+
+SERVICE WORKER :
+- Désactivé en dev (disable: process.env.NODE_ENV === 'development')
+- Généré automatiquement lors du build
+- Fichiers générés dans public/ (exclus de git via .gitignore)
+
+THÈME :
+- Par défaut : "system" (suit préférences OS)
+- Choix persisté dans Zustand → localforage
+- Changement instantané sans rechargement
+
+NOTIFICATIONS :
+- Vérifiées au chargement de la page d'accueil
+- Basées sur l'état du plan du mois en cours
+- Peuvent être dismissed (session uniquement, réapparaissent au reload)
+
+
+📚 DOCUMENTATION DISPONIBLE
+================================================================================
+
+README.md          → Documentation générale du projet
+STORE_GUIDE.md     → Guide complet du store Zustand
+PROJET_RESUME.txt  → Ce fichier (documentation complète et à jour)
+
+
+🎯 PROCHAINES ÉTAPES POSSIBLES
+================================================================================
+
+Améliorations potentielles :
+- Graphiques supplémentaires (évolution dans le temps, comparaisons)
+- Graphiques interactifs avancés (drill-down)
+- Comparaison entre plusieurs mois (dashboard comparatif)
+- Catégories personnalisables pour les revenus/dépenses
+- Multi-devises avec taux de change
+- Rappels et notifications push (PWA)
+- Mode tablette optimisé avec layout adaptatif
+- Backup automatique dans le cloud (optionnel)
+- Import depuis CSV/Excel
+- Export vers Excel avec formules
+- Statistiques avancées et prévisions
+- Objectifs d'épargne avec suivi
+- Alertes sur dépassement de budget
+
+
+🎉 FONCTIONNALITÉS RÉCEMMENT AJOUTÉES (v2.0.0)
+================================================================================
+
+✅ Système de validation complet des entrées utilisateur
+✅ Thème Dark Mode avec 3 modes (Light/Dark/System)
+✅ Notifications intelligentes sur page d'accueil
+✅ Progressive Web App (PWA) avec mode offline
+✅ Export/Import JSON des plans
+✅ Composants réutilisables avec validation intégrée
+✅ Design responsive amélioré
+✅ Feedback visuel sur toutes les interactions
+✅ Performance optimisée avec Service Worker
+✅ Sécurité renforcée avec sanitization
+
+
+================================================================================
+                           FIN DU RÉSUMÉ DU PROJET
+                     Document mis à jour pour la version 2.0.0
+                     Dernière mise à jour : Octobre 2025
+================================================================================
