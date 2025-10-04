@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { TutorialProvider } from "@/context/TutorialContext";
+import AuthProvider from "@/components/auth/AuthProvider";
 import TutorialOverlay from "@/components/tutorial/TutorialOverlay";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -47,10 +48,12 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          <TutorialProvider>
-            {children}
-            <TutorialOverlay />
-          </TutorialProvider>
+          <AuthProvider>
+            <TutorialProvider>
+              {children}
+              <TutorialOverlay />
+            </TutorialProvider>
+          </AuthProvider>
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />

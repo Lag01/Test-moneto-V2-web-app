@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import localforage from 'localforage';
+import type { User } from '@/lib/supabase/auth';
 
 /**
  * Types pour les transactions
@@ -87,6 +88,26 @@ export interface UserSettings {
 }
 
 /**
+ * État de synchronisation avec le cloud
+ */
+export interface SyncStatus {
+  isSyncing: boolean;
+  lastSyncAt: Date | null;
+  error: string | null;
+}
+
+/**
+ * État de migration des données locales vers le cloud
+ */
+export interface DataMigrationStatus {
+  hasBeenProposed: boolean; // La migration a-t-elle été proposée à l'utilisateur ?
+  hasBeenCompleted: boolean; // La migration a-t-elle été effectuée ?
+  wasDeclined: boolean; // L'utilisateur a-t-il refusé la migration ?
+  lastProposedAt: Date | null; // Date de la dernière proposition
+  migratedPlansCount: number; // Nombre de plans migrés
+}
+
+/**
  * État global de l'application
  */
 interface AppState {
@@ -120,6 +141,24 @@ interface AppState {
   // Paramètres utilisateur
   userSettings: UserSettings;
   updateUserSettings: (settings: Partial<UserSettings>) => void;
+
+  // Authentification et utilisateur
+  user: User | null;
+  setUser: (user: User | null) => void;
+  logout: () => Promise<void>;
+  initializeAuth: () => Promise<void>;
+
+  // Synchronisation cloud
+  syncStatus: SyncStatus;
+  syncWithCloud: () => Promise<void>;
+  syncSinglePlan: (planId: string) => Promise<void>;
+  downloadPlansFromCloud: () => Promise<void>;
+  setSyncStatus: (status: Partial<SyncStatus>) => void;
+
+  // Migration des données locales
+  dataMigrationStatus: DataMigrationStatus;
+  setDataMigrationStatus: (status: Partial<DataMigrationStatus>) => void;
+  importLocalDataToCloud: () => Promise<{ success: boolean; migratedCount?: number; error?: string }>;
 
   // Budget
   monthlyBudget: number;
@@ -206,6 +245,19 @@ export const useAppStore = create<AppState>()(
       monthlyPlans: [],
       currentMonthId: null,
       userSettings: defaultUserSettings,
+      user: null,
+      syncStatus: {
+        isSyncing: false,
+        lastSyncAt: null,
+        error: null,
+      },
+      dataMigrationStatus: {
+        hasBeenProposed: false,
+        hasBeenCompleted: false,
+        wasDeclined: false,
+        lastProposedAt: null,
+        migratedPlansCount: 0,
+      },
 
       // Actions pour les transactions
       addTransaction: (transaction) => {
@@ -294,6 +346,17 @@ export const useAppStore = create<AppState>()(
           monthlyPlans: [...state.monthlyPlans, newPlan],
           currentMonthId: newPlan.id,
         }));
+
+        // Upload vers le cloud si utilisateur connecté
+        const user = get().user;
+        if (user) {
+          import('@/lib/supabase/sync').then(({ uploadPlanToCloud }) => {
+            uploadPlanToCloud(newPlan, user.id).catch((error) => {
+              console.error('Erreur lors de l\'upload du nouveau plan:', error);
+            });
+          });
+        }
+
         return newPlan.id;
       },
 
@@ -305,6 +368,16 @@ export const useAppStore = create<AppState>()(
               : p
           ),
         }));
+
+        // Auto-sync avec debounce si utilisateur connecté
+        const user = get().user;
+        if (user) {
+          import('@/lib/supabase/sync').then(({ debouncedSync }) => {
+            debouncedSync(() => {
+              get().syncSinglePlan(id);
+            });
+          });
+        }
       },
 
       deleteMonthlyPlan: (id: string) => {
@@ -312,6 +385,16 @@ export const useAppStore = create<AppState>()(
           monthlyPlans: state.monthlyPlans.filter((p) => p.id !== id),
           currentMonthId: state.currentMonthId === id ? null : state.currentMonthId,
         }));
+
+        // Supprimer du cloud si utilisateur connecté
+        const user = get().user;
+        if (user) {
+          import('@/lib/supabase/sync').then(({ deletePlanFromCloud }) => {
+            deletePlanFromCloud(id, user.id).catch((error) => {
+              console.error('Erreur lors de la suppression du plan dans le cloud:', error);
+            });
+          });
+        }
       },
 
       getMonthlyPlan: (id: string) => {
@@ -455,6 +538,262 @@ export const useAppStore = create<AppState>()(
         }));
       },
 
+      // Actions d'authentification
+      setUser: (user: User | null) => {
+        set({ user });
+      },
+
+      logout: async () => {
+        try {
+          const { signOut } = await import('@/lib/supabase/auth');
+          const result = await signOut();
+
+          if (result.success) {
+            set({ user: null });
+          } else {
+            console.error('Erreur lors de la déconnexion:', result.error);
+          }
+        } catch (error) {
+          console.error('Erreur lors de la déconnexion:', error);
+        }
+      },
+
+      initializeAuth: async () => {
+        try {
+          const { getCurrentUser, onAuthStateChange } = await import('@/lib/supabase/auth');
+
+          // Récupérer l'utilisateur actuel
+          const user = await getCurrentUser();
+          set({ user });
+
+          // Écouter les changements d'authentification
+          onAuthStateChange((user) => {
+            set({ user });
+          });
+
+          // Si un utilisateur est connecté, télécharger ses plans depuis le cloud
+          if (user) {
+            get().downloadPlansFromCloud();
+          }
+        } catch (error) {
+          console.error('Erreur lors de l\'initialisation de l\'authentification:', error);
+        }
+      },
+
+      // Actions de synchronisation
+      setSyncStatus: (status: Partial<SyncStatus>) => {
+        set((state) => ({
+          syncStatus: { ...state.syncStatus, ...status },
+        }));
+      },
+
+      syncWithCloud: async () => {
+        const state = get();
+        const user = state.user;
+
+        if (!user) {
+          console.warn('Impossible de synchroniser : utilisateur non connecté');
+          return;
+        }
+
+        // Marquer comme en cours de synchronisation
+        state.setSyncStatus({ isSyncing: true, error: null });
+
+        try {
+          const { syncAllPlans } = await import('@/lib/supabase/sync');
+
+          const result = await syncAllPlans(state.monthlyPlans, user.id);
+
+          if (result.success && result.plans) {
+            // Mettre à jour les plans avec les versions synchronisées
+            set({
+              monthlyPlans: result.plans,
+              syncStatus: {
+                isSyncing: false,
+                lastSyncAt: new Date(),
+                error: null,
+              },
+            });
+
+            console.log(`Synchronisation réussie : ${result.synced} plans synchronisés, ${result.conflicts} conflits résolus`);
+          } else {
+            state.setSyncStatus({
+              isSyncing: false,
+              error: result.error || 'Erreur inconnue',
+            });
+          }
+        } catch (error) {
+          console.error('Erreur lors de la synchronisation:', error);
+          state.setSyncStatus({
+            isSyncing: false,
+            error: 'Erreur lors de la synchronisation',
+          });
+        }
+      },
+
+      syncSinglePlan: async (planId: string) => {
+        const state = get();
+        const user = state.user;
+
+        if (!user) {
+          console.warn('Impossible de synchroniser : utilisateur non connecté');
+          return;
+        }
+
+        const plan = state.monthlyPlans.find((p) => p.id === planId);
+        if (!plan) {
+          console.error(`Plan ${planId} introuvable`);
+          return;
+        }
+
+        try {
+          const { syncPlan } = await import('@/lib/supabase/sync');
+
+          const result = await syncPlan(plan, user.id);
+
+          if (result.success && result.plan) {
+            // Mettre à jour le plan avec la version synchronisée
+            set((state) => ({
+              monthlyPlans: state.monthlyPlans.map((p) =>
+                p.id === planId ? result.plan! : p
+              ),
+            }));
+
+            if (result.conflict) {
+              console.log(`Conflit résolu pour le plan ${planId}`);
+            }
+          } else {
+            console.error(`Erreur lors de la sync du plan ${planId}:`, result.error);
+          }
+        } catch (error) {
+          console.error('Erreur lors de la synchronisation du plan:', error);
+        }
+      },
+
+      downloadPlansFromCloud: async () => {
+        const state = get();
+        const user = state.user;
+
+        if (!user) {
+          console.warn('Impossible de télécharger : utilisateur non connecté');
+          return;
+        }
+
+        state.setSyncStatus({ isSyncing: true, error: null });
+
+        try {
+          const { downloadPlansFromCloud } = await import('@/lib/supabase/sync');
+
+          const result = await downloadPlansFromCloud(user.id);
+
+          if (result.success && result.plans) {
+            // Fusionner les plans cloud avec les plans locaux
+            const localPlanIds = new Set(state.monthlyPlans.map((p) => p.id));
+            const cloudOnlyPlans = result.plans.filter((p) => !localPlanIds.has(p.id));
+
+            set((state) => ({
+              monthlyPlans: [...state.monthlyPlans, ...cloudOnlyPlans],
+              syncStatus: {
+                isSyncing: false,
+                lastSyncAt: new Date(),
+                error: null,
+              },
+            }));
+
+            console.log(`Téléchargement réussi : ${cloudOnlyPlans.length} nouveaux plans`);
+          } else {
+            state.setSyncStatus({
+              isSyncing: false,
+              error: result.error || 'Erreur inconnue',
+            });
+          }
+        } catch (error) {
+          console.error('Erreur lors du téléchargement:', error);
+          state.setSyncStatus({
+            isSyncing: false,
+            error: 'Erreur lors du téléchargement',
+          });
+        }
+      },
+
+      // Actions de migration
+      setDataMigrationStatus: (status: Partial<DataMigrationStatus>) => {
+        set((state) => ({
+          dataMigrationStatus: { ...state.dataMigrationStatus, ...status },
+        }));
+      },
+
+      importLocalDataToCloud: async () => {
+        const state = get();
+        const user = state.user;
+
+        if (!user) {
+          console.warn('Impossible de migrer : utilisateur non connecté');
+          return {
+            success: false,
+            error: 'Utilisateur non connecté',
+          };
+        }
+
+        const localPlans = state.monthlyPlans;
+        if (localPlans.length === 0) {
+          console.log('Aucun plan local à migrer');
+          return {
+            success: true,
+            migratedCount: 0,
+          };
+        }
+
+        try {
+          const { uploadPlanToCloud } = await import('@/lib/supabase/sync');
+
+          let migratedCount = 0;
+          const errors: string[] = [];
+
+          // Upload chaque plan local vers le cloud
+          for (const plan of localPlans) {
+            try {
+              const result = await uploadPlanToCloud(plan, user.id);
+              if (result.success) {
+                migratedCount++;
+              } else {
+                errors.push(`Plan ${plan.month}: ${result.error}`);
+              }
+            } catch (error) {
+              console.error(`Erreur lors de l'upload du plan ${plan.id}:`, error);
+              errors.push(`Plan ${plan.month}: erreur inattendue`);
+            }
+          }
+
+          // Mettre à jour le statut de migration
+          state.setDataMigrationStatus({
+            hasBeenCompleted: true,
+            migratedPlansCount: migratedCount,
+          });
+
+          if (errors.length > 0) {
+            console.warn('Erreurs lors de la migration:', errors);
+            return {
+              success: migratedCount > 0,
+              migratedCount,
+              error: `${migratedCount}/${localPlans.length} plans migrés. Erreurs: ${errors.join(', ')}`,
+            };
+          }
+
+          console.log(`Migration réussie : ${migratedCount} plans migrés`);
+          return {
+            success: true,
+            migratedCount,
+          };
+        } catch (error) {
+          console.error('Erreur inattendue lors de la migration:', error);
+          return {
+            success: false,
+            error: 'Erreur inattendue lors de la migration',
+          };
+        }
+      },
+
       // Actions pour le budget
       setMonthlyBudget: (budget) => {
         set({ monthlyBudget: budget });
@@ -469,6 +808,7 @@ export const useAppStore = create<AppState>()(
           monthlyPlans: [],
           currentMonthId: null,
           userSettings: defaultUserSettings,
+          user: null,
         });
       },
     }),

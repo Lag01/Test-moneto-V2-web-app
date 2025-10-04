@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
 import { useAppStore } from '@/store';
@@ -16,6 +17,7 @@ import { useTutorialContext } from '@/context/TutorialContext';
 import { useTutorial } from '@/hooks/useTutorial';
 import TutorialWelcomeModal from '@/components/tutorial/TutorialWelcomeModal';
 import TutorialDisclaimerModal from '@/components/tutorial/TutorialDisclaimerModal';
+import LocalDataMigrationModal from '@/components/auth/LocalDataMigrationModal';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -28,6 +30,8 @@ export default function DashboardPage() {
     importMonthlyPlanFromData,
     userSettings,
     updateUserSettings,
+    user,
+    dataMigrationStatus,
   } = useAppStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,6 +39,8 @@ export default function DashboardPage() {
   const [importSuccess, setImportSuccess] = useState<string | null>(null);
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [showBetaWarning, setShowBetaWarning] = useState(true);
+  const [showMigrationModal, setShowMigrationModal] = useState(false);
+  const [showMigrationBanner, setShowMigrationBanner] = useState(true);
 
   // Tutoriel
   const { showWelcomeModal, showDisclaimerModal, setShowWelcomeModal, startTutorial, startTutorialAfterDisclaimer } = useTutorialContext();
@@ -59,6 +65,30 @@ export default function DashboardPage() {
     localStorage.setItem('betaWarningDismissed', 'true');
     setShowBetaWarning(false);
   };
+
+  const handleDismissMigrationBanner = () => {
+    setShowMigrationBanner(false);
+  };
+
+  const handleOpenMigrationModal = () => {
+    setShowMigrationModal(true);
+  };
+
+  const handleCloseMigrationModal = () => {
+    setShowMigrationModal(false);
+  };
+
+  // Vérifier si on doit afficher le banner de migration
+  const shouldShowMigrationBanner =
+    showMigrationBanner &&
+    user &&
+    monthlyPlans.length > 0 &&
+    !dataMigrationStatus.hasBeenCompleted;
+
+  // Vérifier si on doit afficher le call-to-action pour se connecter
+  const shouldShowLoginCTA =
+    !user &&
+    monthlyPlans.length > 0;
 
   const handleAcceptTutorial = () => {
     initializeTutorial();
@@ -245,6 +275,96 @@ export default function DashboardPage() {
                     />
                   </svg>
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Bandeau de migration des données */}
+          {shouldShowMigrationBanner && (
+            <div className="mb-4 md:mb-6 bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-500 p-4 md:p-5 rounded-r-lg">
+              <div className="flex items-start gap-3">
+                <svg
+                  className="h-6 w-6 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="text-sm md:text-base font-bold text-emerald-800 dark:text-emerald-300 mb-2">
+                    Synchronisez vos données avec le cloud
+                  </h3>
+                  <p className="text-xs md:text-sm text-emerald-700 dark:text-emerald-300 leading-relaxed mb-3">
+                    Vous avez {monthlyPlans.length} {monthlyPlans.length > 1 ? 'plans' : 'plan'} sur cet appareil. Sauvegardez-les dans le cloud pour y accéder depuis tous vos appareils et ne jamais les perdre.
+                  </p>
+                  <button
+                    onClick={handleOpenMigrationModal}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Synchroniser mes données
+                  </button>
+                </div>
+                <button
+                  onClick={handleDismissMigrationBanner}
+                  className="p-1.5 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-lg transition-colors flex-shrink-0"
+                  aria-label="Fermer"
+                >
+                  <svg
+                    className="w-5 h-5 text-emerald-600 dark:text-emerald-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Call-to-action pour se connecter (utilisateurs non connectés avec plans locaux) */}
+          {shouldShowLoginCTA && (
+            <div className="mb-4 md:mb-6 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 md:p-5 rounded-r-lg">
+              <div className="flex items-start gap-3">
+                <svg
+                  className="h-6 w-6 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="text-sm md:text-base font-bold text-blue-800 dark:text-blue-300 mb-2">
+                    Sauvegardez vos données dans le cloud
+                  </h3>
+                  <p className="text-xs md:text-sm text-blue-700 dark:text-blue-300 leading-relaxed mb-3">
+                    Vous avez {monthlyPlans.length} {monthlyPlans.length > 1 ? 'plans' : 'plan'} sur cet appareil.
+                    Créez un compte pour sauvegarder vos données dans le cloud et y accéder depuis tous vos appareils.
+                  </p>
+                  <Link
+                    href="/auth/login"
+                    className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Se connecter pour sauvegarder
+                  </Link>
+                </div>
               </div>
             </div>
           )}
@@ -559,6 +679,13 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Modal de migration des données */}
+      <LocalDataMigrationModal
+        isOpen={showMigrationModal}
+        localPlansCount={monthlyPlans.length}
+        onClose={handleCloseMigrationModal}
+      />
     </LayoutWithNav>
   );
 }
