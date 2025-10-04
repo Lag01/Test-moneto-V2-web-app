@@ -18,6 +18,7 @@ import { useTutorial } from '@/hooks/useTutorial';
 import TutorialWelcomeModal from '@/components/tutorial/TutorialWelcomeModal';
 import TutorialDisclaimerModal from '@/components/tutorial/TutorialDisclaimerModal';
 import LocalDataMigrationModal from '@/components/auth/LocalDataMigrationModal';
+import SyncManagementModal from '@/components/sync/SyncManagementModal';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -41,6 +42,7 @@ export default function DashboardPage() {
   const [showBetaWarning, setShowBetaWarning] = useState(true);
   const [showMigrationModal, setShowMigrationModal] = useState(false);
   const [showMigrationBanner, setShowMigrationBanner] = useState(true);
+  const [showSyncManagementModal, setShowSyncManagementModal] = useState(false);
 
   // Tutoriel
   const { showWelcomeModal, showDisclaimerModal, setShowWelcomeModal, startTutorial, startTutorialAfterDisclaimer } = useTutorialContext();
@@ -107,7 +109,7 @@ export default function DashboardPage() {
   const handleCreateNew = () => {
     const now = new Date();
     const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const planId = addMonthlyPlan(month);
+    addMonthlyPlan(month);
     router.push('/onboarding');
   };
 
@@ -115,7 +117,7 @@ export default function DashboardPage() {
     const now = new Date();
     const newMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-    const newPlanId = copyMonthlyPlan(sourceId, newMonth);
+    copyMonthlyPlan(sourceId, newMonth);
     setShowCopyModal(false);
     router.push('/onboarding');
   };
@@ -303,12 +305,20 @@ export default function DashboardPage() {
                   <p className="text-xs md:text-sm text-emerald-700 dark:text-emerald-300 leading-relaxed mb-3">
                     Vous avez {monthlyPlans.length} {monthlyPlans.length > 1 ? 'plans' : 'plan'} sur cet appareil. Sauvegardez-les dans le cloud pour y accéder depuis tous vos appareils et ne jamais les perdre.
                   </p>
-                  <button
-                    onClick={handleOpenMigrationModal}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
-                  >
-                    Synchroniser mes données
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleOpenMigrationModal}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                      Synchroniser mes données
+                    </button>
+                    <button
+                      onClick={() => setShowSyncManagementModal(true)}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                      Gérer la synchronisation
+                    </button>
+                  </div>
                 </div>
                 <button
                   onClick={handleDismissMigrationBanner}
@@ -482,6 +492,24 @@ export default function DashboardPage() {
               onChange={handleFileChange}
               className="hidden"
             />
+
+            {user && (
+              <button
+                onClick={() => setShowSyncManagementModal(true)}
+                className="px-4 md:px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 min-h-[44px] text-sm md:text-base"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                <span className="hidden sm:inline">Gérer la sync</span>
+                <span className="sm:hidden">Sync</span>
+              </button>
+            )}
           </div>
 
           {/* Liste des plans */}
@@ -685,6 +713,12 @@ export default function DashboardPage() {
         isOpen={showMigrationModal}
         localPlansCount={monthlyPlans.length}
         onClose={handleCloseMigrationModal}
+      />
+
+      {/* Modal de gestion de synchronisation */}
+      <SyncManagementModal
+        isOpen={showSyncManagementModal}
+        onClose={() => setShowSyncManagementModal(false)}
       />
     </LayoutWithNav>
   );
