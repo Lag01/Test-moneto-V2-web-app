@@ -52,8 +52,12 @@ export default function PercentageSlider({
   }, [amount, isEditing, type]);
 
   const handleSliderChange = (value: string) => {
-    const num = parseFloat(value);
-    setLocalPercentage(value);
+    let num = parseFloat(value);
+    // Limiter la valeur au maximum disponible
+    if (num > maxPercentage) {
+      num = maxPercentage;
+    }
+    setLocalPercentage(num.toFixed(1));
     setError(undefined);
     onChange(id, num);
   };
@@ -194,13 +198,13 @@ export default function PercentageSlider({
               <input
                 type="range"
                 min="0"
-                max={maxPercentage}
+                max="100"
                 step="0.5"
                 value={percentage}
                 onChange={(e) => handleSliderChange(e.target.value)}
                 className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-100 dark:bg-slate-700"
                 style={{
-                  background: `linear-gradient(to right, ${color}40 0%, ${color}40 ${(percentage / maxPercentage) * 100}%, #f1f5f9 ${(percentage / maxPercentage) * 100}%, #f1f5f9 100%)`,
+                  background: `linear-gradient(to right, ${color}40 0%, ${color}40 ${percentage}%, #f1f5f9 ${percentage}%, #f1f5f9 100%)`,
                 }}
               />
             </div>
