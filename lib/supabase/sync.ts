@@ -1,4 +1,4 @@
-import { supabase } from './client';
+import { supabase, isSupabaseConfigured } from './client';
 import type { MonthlyPlan } from '@/store';
 import { monthlyPlanToRow, rowToMonthlyPlan } from './types';
 import type { MonthlyPlanUpdate } from './types';
@@ -40,6 +40,13 @@ export async function uploadPlanToCloud(
   plan: MonthlyPlan,
   userId: string
 ): Promise<SyncResult> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return {
+      success: false,
+      error: 'La synchronisation cloud n\'est pas configurée',
+    };
+  }
+
   const operationId = `upload-${plan.id}-${Date.now()}`;
   performanceTracker.start(operationId, 'uploadPlan', { planId: plan.id, userId });
 
@@ -195,6 +202,13 @@ export async function uploadPlanToCloud(
 export async function downloadPlansFromCloud(
   userId: string
 ): Promise<DownloadResult> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return {
+      success: false,
+      error: 'La synchronisation cloud n\'est pas configurée',
+    };
+  }
+
   const operationId = `download-${userId}-${Date.now()}`;
   performanceTracker.start(operationId, 'downloadPlans', { userId });
 
@@ -278,6 +292,13 @@ export async function syncPlan(
   localPlan: MonthlyPlan,
   userId: string
 ): Promise<{ success: boolean; plan?: MonthlyPlan; error?: string; conflict?: boolean }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return {
+      success: false,
+      error: 'La synchronisation cloud n\'est pas configurée',
+    };
+  }
+
   try {
     // Récupérer le plan distant
     const { data: remotePlanRow, error: fetchError } = await supabase
@@ -391,6 +412,13 @@ export async function deletePlanFromCloud(
   planId: string,
   userId: string
 ): Promise<SyncResult> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return {
+      success: false,
+      error: 'La synchronisation cloud n\'est pas configurée',
+    };
+  }
+
   const operationId = `delete-${planId}-${Date.now()}`;
   performanceTracker.start(operationId, 'deletePlan', { planId, userId });
 
@@ -480,6 +508,13 @@ export async function syncAllPlans(
   conflicts?: number;
   error?: string;
 }> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return {
+      success: false,
+      error: 'La synchronisation cloud n\'est pas configurée',
+    };
+  }
+
   const operationId = `syncAll-${userId}-${Date.now()}`;
   performanceTracker.start(operationId, 'syncAllPlans', { userId, count: localPlans.length });
 

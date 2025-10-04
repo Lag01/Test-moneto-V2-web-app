@@ -1,4 +1,4 @@
-import { supabase } from './client';
+import { supabase, isSupabaseConfigured } from './client';
 import type { AuthError, User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 /**
@@ -53,6 +53,13 @@ function translateAuthError(error: AuthError): string {
  * Inscription d'un nouvel utilisateur
  */
 export async function signUp(email: string, password: string): Promise<AuthResult> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return {
+      success: false,
+      error: 'La synchronisation cloud n\'est pas configurée. Veuillez utiliser le mode local.',
+    };
+  }
+
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -90,6 +97,13 @@ export async function signUp(email: string, password: string): Promise<AuthResul
  * Connexion d'un utilisateur existant
  */
 export async function signIn(email: string, password: string): Promise<AuthResult> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return {
+      success: false,
+      error: 'La synchronisation cloud n\'est pas configurée. Veuillez utiliser le mode local.',
+    };
+  }
+
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -127,6 +141,13 @@ export async function signIn(email: string, password: string): Promise<AuthResul
  * Déconnexion de l'utilisateur actuel
  */
 export async function signOut(): Promise<AuthResult> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return {
+      success: false,
+      error: 'La synchronisation cloud n\'est pas configurée.',
+    };
+  }
+
   try {
     const { error } = await supabase.auth.signOut();
 
@@ -153,6 +174,10 @@ export async function signOut(): Promise<AuthResult> {
  * Récupère l'utilisateur actuellement connecté
  */
 export async function getCurrentUser(): Promise<User | null> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return null;
+  }
+
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
 
@@ -171,6 +196,10 @@ export async function getCurrentUser(): Promise<User | null> {
  * Récupère la session actuelle
  */
 export async function getSession(): Promise<Session | null> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return null;
+  }
+
   try {
     const { data: { session }, error } = await supabase.auth.getSession();
 
@@ -193,6 +222,11 @@ export async function getSession(): Promise<Session | null> {
 export function onAuthStateChange(
   callback: (user: User | null) => void
 ): () => void {
+  if (!isSupabaseConfigured() || !supabase) {
+    // Retourne une fonction de nettoyage vide si Supabase n'est pas configuré
+    return () => {};
+  }
+
   const { data: { subscription } } = supabase.auth.onAuthStateChange(
     async (event, session) => {
       console.log('Auth state changed:', event);

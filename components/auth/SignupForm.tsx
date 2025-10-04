@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signUp } from '@/lib/supabase/auth';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
 import { useAppStore } from '@/store';
 import Link from 'next/link';
 
@@ -16,6 +17,12 @@ export default function SignupForm() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [supabaseAvailable, setSupabaseAvailable] = useState(true);
+
+  // Vérifier si Supabase est configuré au chargement
+  useEffect(() => {
+    setSupabaseAvailable(isSupabaseConfigured());
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +63,30 @@ export default function SignupForm() {
       setIsLoading(false);
     }
   };
+
+  // Si Supabase n'est pas configuré, afficher un message
+  if (!supabaseAvailable) {
+    return (
+      <div className="w-full max-w-md mx-auto">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            Synchronisation cloud non disponible
+          </h2>
+
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded-lg mb-6">
+            La synchronisation cloud n&apos;est pas configurée sur ce déploiement. Vous pouvez continuer à utiliser l&apos;application en mode local uniquement.
+          </div>
+
+          <Link
+            href="/dashboard"
+            className="block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg text-center transition-colors"
+          >
+            Continuer en mode local
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-md mx-auto">
