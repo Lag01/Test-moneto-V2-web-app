@@ -9,7 +9,8 @@ import {
   normalizeEnvelopePercentages,
   separateEnvelopesByType,
   calculateFixedEnvelopesTotal,
-  recalculateEnvelopeAmounts
+  recalculateEnvelopeAmounts,
+  calculateMaxPercentageForEnvelope
 } from '@/lib/monthly-plan';
 
 interface Props {
@@ -222,6 +223,7 @@ export default function EnvelopeAllocator({
                       onToggleType={handleToggleType}
                       onDelete={handleDelete}
                       color={ENVELOPE_COLORS[index % ENVELOPE_COLORS.length]}
+                      maxPercentage={calculateMaxPercentageForEnvelope(envelopes, envelope.id)}
                     />
                   ))}
                 </div>
@@ -249,6 +251,7 @@ export default function EnvelopeAllocator({
                       onToggleType={handleToggleType}
                       onDelete={handleDelete}
                       color={ENVELOPE_COLORS[(fixed.length + index) % ENVELOPE_COLORS.length]}
+                      maxPercentage={calculateMaxPercentageForEnvelope(envelopes, envelope.id)}
                     />
                   ))}
                 </div>

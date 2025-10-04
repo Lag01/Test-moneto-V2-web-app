@@ -95,6 +95,28 @@ export function getTotalPercentage(envelopes: Envelope[]): number {
 }
 
 /**
+ * Calcule le pourcentage maximum qu'une enveloppe peut avoir
+ * pour ne pas dépasser 100% au total
+ * @param envelopes - Liste de toutes les enveloppes
+ * @param currentEnvelopeId - ID de l'enveloppe pour laquelle calculer le max
+ * @returns Le pourcentage maximum disponible (entre 0 et 100)
+ */
+export function calculateMaxPercentageForEnvelope(
+  envelopes: Envelope[],
+  currentEnvelopeId: string
+): number {
+  const { percentage } = separateEnvelopesByType(envelopes);
+
+  // Somme des pourcentages de toutes les autres enveloppes en %
+  const otherPercentagesSum = percentage
+    .filter((env) => env.id !== currentEnvelopeId)
+    .reduce((sum, env) => sum + env.percentage, 0);
+
+  // Le max est ce qui reste pour arriver à 100%
+  return Math.max(0, 100 - otherPercentagesSum);
+}
+
+/**
  * Calcule le solde final après allocation de toutes les enveloppes
  */
 export function calculateFinalBalance(plan: MonthlyPlan): number {

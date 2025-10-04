@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/store';
 import LayoutWithNav from '@/app/layout-with-nav';
@@ -15,54 +14,6 @@ export default function RepartitionPage() {
   const { isActive: isTutorialActive, nextStep } = useTutorialContext();
 
   const currentPlan = monthlyPlans.find((p) => p.id === currentMonthId);
-
-  useEffect(() => {
-    if (currentPlan && currentPlan.envelopes.length === 0) {
-      // Initialiser avec des enveloppes par défaut
-      const defaultEnvelopes = [
-        {
-          id: `env-${Date.now()}-1`,
-          name: 'Épargne',
-          type: 'percentage' as const,
-          percentage: 30,
-          amount: 0,
-        },
-        {
-          id: `env-${Date.now()}-2`,
-          name: 'Loisirs',
-          type: 'percentage' as const,
-          percentage: 20,
-          amount: 0,
-        },
-        {
-          id: `env-${Date.now()}-3`,
-          name: 'Livret A',
-          type: 'percentage' as const,
-          percentage: 25,
-          amount: 0,
-        },
-        {
-          id: `env-${Date.now()}-4`,
-          name: 'Crypto',
-          type: 'percentage' as const,
-          percentage: 25,
-          amount: 0,
-        },
-      ];
-
-      const availableAmount = calculateAvailableAmount(
-        currentPlan.fixedIncomes,
-        currentPlan.fixedExpenses
-      );
-
-      const withAmounts = defaultEnvelopes.map((env) => ({
-        ...env,
-        amount: (availableAmount * env.percentage) / 100,
-      }));
-
-      updateMonthlyPlan(currentPlan.id, { envelopes: withAmounts });
-    }
-  }, [currentPlan, updateMonthlyPlan]);
 
   if (!currentPlan) {
     return (

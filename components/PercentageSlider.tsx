@@ -17,6 +17,7 @@ interface Props {
   onToggleType: (id: string) => void;
   onDelete: (id: string) => void;
   color?: string;
+  maxPercentage?: number;
 }
 
 export default function PercentageSlider({
@@ -31,6 +32,7 @@ export default function PercentageSlider({
   onToggleType,
   onDelete,
   color = '#3b82f6',
+  maxPercentage = 100,
 }: Props) {
   const [localPercentage, setLocalPercentage] = useState(percentage.toString());
   const [localAmount, setLocalAmount] = useState(amount.toString());
@@ -76,9 +78,9 @@ export default function PercentageSlider({
       if (isNaN(num) || num < 0) {
         num = 0;
         setError('Le pourcentage ne peut pas être négatif');
-      } else if (num > 100) {
-        num = 100;
-        setError('Le pourcentage ne peut pas dépasser 100%');
+      } else if (num > maxPercentage) {
+        num = maxPercentage;
+        setError(`Le pourcentage ne peut pas dépasser ${maxPercentage.toFixed(1)}% (maximum disponible)`);
       } else {
         setError(undefined);
       }
@@ -172,7 +174,7 @@ export default function PercentageSlider({
                   onFocus={() => setIsEditing(true)}
                   onBlur={handleInputBlur}
                   min="0"
-                  max="100"
+                  max={maxPercentage}
                   step="0.5"
                   className={`w-20 px-3 py-3 md:py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-center font-semibold text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 min-h-[44px] ${
                     error ? 'border-red-500' : ''
@@ -192,13 +194,13 @@ export default function PercentageSlider({
               <input
                 type="range"
                 min="0"
-                max="100"
+                max={maxPercentage}
                 step="0.5"
                 value={percentage}
                 onChange={(e) => handleSliderChange(e.target.value)}
                 className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-slate-100 dark:bg-slate-700"
                 style={{
-                  background: `linear-gradient(to right, ${color}40 0%, ${color}40 ${percentage}%, #f1f5f9 ${percentage}%, #f1f5f9 100%)`,
+                  background: `linear-gradient(to right, ${color}40 0%, ${color}40 ${(percentage / maxPercentage) * 100}%, #f1f5f9 ${(percentage / maxPercentage) * 100}%, #f1f5f9 100%)`,
                 }}
               />
             </div>
