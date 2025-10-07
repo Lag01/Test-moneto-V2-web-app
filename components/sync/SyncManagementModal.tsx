@@ -264,16 +264,24 @@ export default function SyncManagementModal({ isOpen, onClose }: SyncManagementM
               {/* Plans locaux */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                    📱 Plans locaux ({localPlansWithStatus.length})
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                      Plans locaux ({localPlansWithStatus.length})
+                    </h3>
+                  </div>
                   {selectedLocal.size > 0 && (
                     <button
                       onClick={handleUploadSelected}
                       disabled={isLoading}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white text-sm rounded-lg transition-colors"
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
                     >
-                      ⬆️ Uploader ({selectedLocal.size})
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      Uploader ({selectedLocal.size})
                     </button>
                   )}
                 </div>
@@ -321,25 +329,36 @@ export default function SyncManagementModal({ isOpen, onClose }: SyncManagementM
               {cloudOnlyPlans.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                      ☁️ Plans cloud uniquement ({cloudOnlyPlans.length})
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                      </svg>
+                      <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                        Plans cloud uniquement ({cloudOnlyPlans.length})
+                      </h3>
+                    </div>
                     <div className="flex gap-2">
                       {selectedCloud.size > 0 && (
                         <>
                           <button
                             onClick={handleDownloadSelected}
                             disabled={isLoading}
-                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm rounded-lg transition-colors"
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
                           >
-                            ⬇️ Importer ({selectedCloud.size})
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Importer ({selectedCloud.size})
                           </button>
                           <button
                             onClick={handleDeleteSelected}
                             disabled={isLoading}
-                            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm rounded-lg transition-colors"
+                            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
                           >
-                            🗑️ Supprimer ({selectedCloud.size})
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Supprimer ({selectedCloud.size})
                           </button>
                         </>
                       )}

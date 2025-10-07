@@ -305,20 +305,12 @@ export default function DashboardPage() {
                   <p className="text-xs md:text-sm text-emerald-700 dark:text-emerald-300 leading-relaxed mb-3">
                     Vous avez {monthlyPlans.length} {monthlyPlans.length > 1 ? 'plans' : 'plan'} sur cet appareil. Sauvegardez-les dans le cloud pour y accéder depuis tous vos appareils et ne jamais les perdre.
                   </p>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleOpenMigrationModal}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                      Synchroniser mes données
-                    </button>
-                    <button
-                      onClick={() => setShowSyncManagementModal(true)}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                      Gérer la synchronisation
-                    </button>
-                  </div>
+                  <button
+                    onClick={handleOpenMigrationModal}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Synchroniser mes données
+                  </button>
                 </div>
                 <button
                   onClick={handleDismissMigrationBanner}

@@ -71,7 +71,7 @@ export default function PlanSyncStatusBadge({
             </svg>
           ),
           label: 'Local plus récent',
-          colorClass: 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20',
+          colorClass: 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700',
         };
       case 'cloud_newer':
         return {
@@ -85,7 +85,7 @@ export default function PlanSyncStatusBadge({
             </svg>
           ),
           label: 'Cloud plus récent',
-          colorClass: 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20',
+          colorClass: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20',
         };
       case 'syncing':
         return {

@@ -90,7 +90,7 @@ export default function SignupForm() {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-8">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-8">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           Créer un compte
         </h2>
@@ -174,8 +174,11 @@ export default function SignupForm() {
           </div>
 
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 px-4 py-3 rounded-lg">
-            <p className="text-sm text-blue-800 dark:text-blue-300">
-              🎉 Phase de test : tous les comptes sont automatiquement Premium avec synchronisation cloud !
+            <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">
+              Phase de test
+            </p>
+            <p className="text-xs text-blue-700 dark:text-blue-400">
+              Tous les comptes sont automatiquement Premium avec synchronisation cloud
             </p>
           </div>
 
