@@ -40,7 +40,9 @@
       "mcp__supabase__get_advisors",
       "mcp__supabase__list_migrations",
       "Bash(move:*)",
-      "Bash(del nul)"
+      "Bash(del nul)",
+      "Bash(timeout 10 bash -c \"while ! curl -s http://localhost:3000 > /dev/null; do sleep 1; done && echo ''Server ready!''\")",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

@@ -59,7 +59,7 @@ export default function Home() {
                 Visualisation claire
               </h2>
               <p className="text-slate-600 dark:text-slate-300">
-                Analysez vos finances avec des graphiques Sankey et Waterfall pour comprendre vos flux d&apos;argent
+                Analysez vos finances avec un diagramme Sankey interactif pour comprendre vos flux d&apos;argent
               </p>
             </div>
           </div>
