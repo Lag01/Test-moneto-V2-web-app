@@ -208,10 +208,10 @@ export default function DemoSankeyChart() {
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 relative border border-slate-200 dark:border-slate-700">
       <div className="mb-6">
         <h3 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-3">
-          Visualisez votre budget en un coup d'œil
+          Visualisez votre budget en un coup d&apos;œil
         </h3>
         <p className="text-base md:text-lg text-slate-600 dark:text-slate-400">
-          Le diagramme Sankey vous montre exactement où va chaque euro : de vos revenus jusqu'à vos enveloppes
+          Le diagramme Sankey vous montre exactement où va chaque euro : de vos revenus jusqu&apos;à vos enveloppes
         </p>
       </div>
 

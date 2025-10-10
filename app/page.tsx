@@ -32,7 +32,7 @@ export default function PresentationPage() {
 
             {/* Sous-titre */}
             <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-8 max-w-3xl mx-auto leading-relaxed">
-              L'application de gestion budgétaire moderne qui vous aide à prendre le contrôle de vos dépenses
+              L&apos;application de gestion budgétaire moderne qui vous aide à prendre le contrôle de vos dépenses
               et à atteindre vos objectifs financiers
             </p>
 
@@ -72,11 +72,11 @@ export default function PresentationPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-5xl font-bold text-slate-900 dark:text-slate-100 mb-6">
-              Qu'est-ce que la méthode des enveloppes ?
+              Qu&apos;est-ce que la méthode des enveloppes ?
             </h2>
             <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl mx-auto">
               Une approche simple et efficace pour gérer votre budget : vous divisez votre argent disponible
-              en différentes "enveloppes" selon vos besoins et priorités.
+              en différentes &quot;enveloppes&quot; selon vos besoins et priorités.
             </p>
           </div>
 
@@ -483,7 +483,7 @@ export default function PresentationPage() {
               Choisissez votre mode de sauvegarde
             </h2>
             <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
-              Les deux modes sont 100% gratuits. C'est vous qui décidez comment gérer vos données.
+              Les deux modes sont 100% gratuits. C&apos;est vous qui décidez comment gérer vos données.
             </p>
           </div>
 
@@ -529,11 +529,11 @@ export default function PresentationPage() {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-emerald-900 dark:text-emerald-300 mb-2">
-                  Passez facilement d'un mode à l'autre
+                  Passez facilement d&apos;un mode à l&apos;autre
                 </h3>
                 <p className="text-emerald-800 dark:text-emerald-400 leading-relaxed">
                   Vous pouvez commencer en mode local puis créer un compte plus tard pour synchroniser vos données.
-                  Lors de la création de votre compte, l'application vous proposera d'importer automatiquement vos plans locaux vers le cloud.
+                  Lors de la création de votre compte, l&apos;application vous proposera d&apos;importer automatiquement vos plans locaux vers le cloud.
                   Vous gardez toujours le contrôle de vos données.
                 </p>
               </div>
@@ -619,9 +619,9 @@ export default function PresentationPage() {
                 Application en phase de test
               </h3>
               <p className="text-yellow-800 dark:text-yellow-400 leading-relaxed">
-                L'application est actuellement en phase de test et subit des mises à jour fréquentes.
+                L&apos;application est actuellement en phase de test et subit des mises à jour fréquentes.
                 Vos données locales peuvent être supprimées lors des mises à jour.
-                Nous vous recommandons d'exporter régulièrement vos plans au format JSON pour les sauvegarder.
+                Nous vous recommandons d&apos;exporter régulièrement vos plans au format JSON pour les sauvegarder.
               </p>
             </div>
           </div>
@@ -635,7 +635,7 @@ export default function PresentationPage() {
             Prêt à prendre le contrôle de vos finances ?
           </h2>
           <p className="text-xl md:text-2xl text-emerald-100 mb-10 leading-relaxed">
-            Commencez dès maintenant, c'est gratuit et ça le restera toujours
+            Commencez dès maintenant, c&apos;est gratuit et ça le restera toujours
           </p>
 
           <Link
