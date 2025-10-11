@@ -82,7 +82,7 @@ export default function OnboardingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="mb-6 md:mb-8">
             <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-slate-100 mb-2 capitalize">
-              Onboarding - {monthLabel}
+              Entrées / Sorties - {monthLabel}
             </h1>
             <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">
               Définissez vos revenus et dépenses fixes pour ce mois

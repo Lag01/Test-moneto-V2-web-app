@@ -9,7 +9,7 @@ import { useAppStore } from '@/store';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard' },
-  { href: '/onboarding', label: 'Onboarding' },
+  { href: '/onboarding', label: 'Entrées / Sorties' },
   { href: '/repartition', label: 'Répartition' },
   { href: '/visualisation', label: 'Visualisation' },
   { href: '/profile', label: 'Profil' },

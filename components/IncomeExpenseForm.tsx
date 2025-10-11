@@ -89,7 +89,7 @@ export default function IncomeExpenseForm({ type, items, onChange, title }: Prop
       </div>
 
       {/* Liste des items */}
-      <div className="space-y-2 mb-4 max-h-96 overflow-y-auto">
+      <div className="space-y-2 mb-4">
         {items.length === 0 ? (
           <div className="text-center py-8 text-slate-400 dark:text-slate-500">
             <p>Aucun {type === 'income' ? 'revenu' : 'dépense'} ajouté</p>

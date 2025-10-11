@@ -9,7 +9,7 @@ import { useAppStore } from '@/store';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard' },
-  { href: '/onboarding', label: 'Onboarding' },
+  { href: '/onboarding', label: 'Entrées / Sorties' },
   { href: '/repartition', label: 'Répartition' },
   { href: '/visualisation', label: 'Visualisation' },
 ];
@@ -99,7 +99,7 @@ export default function Navigation() {
                   {/* Bouton déconnexion compact */}
                   <button
                     onClick={logout}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-400 dark:text-slate-500 hover:text-red-400 dark:hover:text-red-400 hover:bg-slate-700 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-400 dark:text-slate-500 hover:text-red-400 dark:hover:text-red-400 hover:bg-slate-700 dark:hover:bg-slate-800 rounded-lg transition-colors"
                   >
                     <svg
                       className="w-4 h-4"
