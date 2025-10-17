@@ -5,6 +5,46 @@ import { syncLogger } from '@/lib/diagnostics/sync-logger';
 import { performanceTracker } from '@/lib/diagnostics/performance-tracker';
 
 /**
+ * Génère un hash du contenu d'un plan pour détecter les vraies modifications
+ * Exclut les métadonnées (id, dates, calculatedResults) qui changent sans modification utilisateur
+ *
+ * @param plan - Le plan à hasher
+ * @returns Hash du contenu métier
+ */
+export function generatePlanHash(plan: MonthlyPlan): string {
+  // Extraire uniquement les données métier (ce qui compte vraiment pour l'utilisateur)
+  const relevantData = {
+    month: plan.month,
+    fixedIncomes: plan.fixedIncomes.map((item) => ({
+      name: item.name,
+      amount: item.amount,
+    })),
+    fixedExpenses: plan.fixedExpenses.map((item) => ({
+      name: item.name,
+      amount: item.amount,
+    })),
+    envelopes: plan.envelopes.map((env) => ({
+      name: env.name,
+      type: env.type,
+      percentage: env.percentage,
+      amount: env.amount,
+    })),
+  };
+
+  // Générer une chaîne JSON canonique (clés triées)
+  const str = JSON.stringify(relevantData, Object.keys(relevantData).sort());
+
+  // Hash simple avec btoa (Base64)
+  // Note: pour plus de robustesse, on pourrait utiliser crypto.subtle.digest
+  try {
+    return btoa(unescape(encodeURIComponent(str)));
+  } catch {
+    // Fallback si btoa échoue (caractères spéciaux)
+    return str;
+  }
+}
+
+/**
  * Résultat d'une opération de synchronisation
  */
 export interface SyncResult {
@@ -722,14 +762,17 @@ export async function getCloudPlansMetadata(
 
 /**
  * Compare le statut de synchronisation d'un plan local avec le cloud
+ * Utilise le hash de contenu pour détecter les vraies modifications
  *
  * @param localPlan - Le plan local (peut être null si plan cloud uniquement)
  * @param cloudMetadata - Les métadonnées cloud (peut être null si plan local uniquement)
+ * @param cloudPlanData - Les données complètes du plan cloud (optionnel, pour comparaison de hash)
  * @returns Le statut de synchronisation du plan
  */
 export function comparePlanStatus(
   localPlan: MonthlyPlan | null,
-  cloudMetadata: import('./types').CloudPlanMetadata | null
+  cloudMetadata: import('./types').CloudPlanMetadata | null,
+  cloudPlanData?: MonthlyPlan | null
 ): import('./types').PlanSyncStatus {
   // Plan existe seulement sur le cloud
   if (!localPlan && cloudMetadata) {
@@ -741,8 +784,34 @@ export function comparePlanStatus(
     return 'not_synced';
   }
 
-  // Plan existe des deux côtés, comparer les timestamps
+  // Plan existe des deux côtés
   if (localPlan && cloudMetadata) {
+    // Si on a les données cloud complètes, comparer les hash de contenu d'abord
+    if (cloudPlanData) {
+      const localHash = generatePlanHash(localPlan);
+      const cloudHash = generatePlanHash(cloudPlanData);
+
+      // Si les hash sont identiques, le contenu est le même → synchronisé
+      // (même si les timestamps diffèrent à cause de recalculs)
+      if (localHash === cloudHash) {
+        return 'synced';
+      }
+
+      // Les contenus sont différents, comparer les timestamps
+      const localTime = new Date(localPlan.updatedAt).getTime();
+      const cloudTime = new Date(cloudMetadata.updatedAt).getTime();
+
+      if (localTime > cloudTime) {
+        return 'local_newer';
+      } else if (cloudTime > localTime) {
+        return 'cloud_newer';
+      } else {
+        // Timestamps identiques mais contenus différents (cas rare)
+        return 'error';
+      }
+    }
+
+    // Fallback : comparer uniquement les timestamps (si pas de données cloud complètes)
     const localTime = new Date(localPlan.updatedAt).getTime();
     const cloudTime = new Date(cloudMetadata.updatedAt).getTime();
 

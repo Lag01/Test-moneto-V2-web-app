@@ -71,7 +71,7 @@ export default function PlanSyncStatusBadge({
             </svg>
           ),
           label: 'Local plus récent',
-          colorClass: 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700',
+          colorClass: 'text-orange-700 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700',
         };
       case 'cloud_newer':
         return {
@@ -139,7 +139,7 @@ export default function PlanSyncStatusBadge({
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 rounded-full font-medium ${config.colorClass} ${paddingSize}`}
+      className={`inline-flex items-center gap-1.5 rounded-full font-medium ${config.colorClass} ${paddingSize} transition-all`}
     >
       <div className={iconSize}>{config.icon}</div>
       {showLabel && <span className={textSize}>{config.label}</span>}

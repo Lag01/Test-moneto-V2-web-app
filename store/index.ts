@@ -372,23 +372,42 @@ export const useAppStore = create<AppState>()(
       },
 
       updateMonthlyPlan: (id: string, plan: Partial<MonthlyPlan>) => {
-        set((state) => ({
-          monthlyPlans: state.monthlyPlans.map((p) =>
-            p.id === id
-              ? { ...p, ...plan, updatedAt: new Date().toISOString() }
-              : p
-          ),
-        }));
+        const currentPlan = get().monthlyPlans.find((p) => p.id === id);
+        if (!currentPlan) return;
 
-        // Auto-sync avec debounce si utilisateur connecté
-        const user = get().user;
-        if (user) {
-          import('@/lib/supabase/sync').then(({ debouncedSync }) => {
-            debouncedSync(() => {
-              get().syncSinglePlan(id);
+        // Vérifier si le contenu a vraiment changé
+        import('@/lib/supabase/sync').then(({ generatePlanHash }) => {
+          const updatedPlan = { ...currentPlan, ...plan };
+          const oldHash = generatePlanHash(currentPlan);
+          const newHash = generatePlanHash(updatedPlan);
+
+          // Ne mettre à jour updatedAt QUE si le contenu a vraiment changé
+          const shouldUpdateTimestamp = oldHash !== newHash;
+
+          set((state) => ({
+            monthlyPlans: state.monthlyPlans.map((p) =>
+              p.id === id
+                ? {
+                    ...p,
+                    ...plan,
+                    updatedAt: shouldUpdateTimestamp
+                      ? new Date().toISOString()
+                      : p.updatedAt
+                  }
+                : p
+            ),
+          }));
+
+          // Auto-sync avec debounce si utilisateur connecté ET contenu modifié
+          const user = get().user;
+          if (user && shouldUpdateTimestamp) {
+            import('@/lib/supabase/sync').then(({ debouncedSync }) => {
+              debouncedSync(() => {
+                get().syncSinglePlan(id);
+              });
             });
-          });
-        }
+          }
+        });
       },
 
       deleteMonthlyPlan: (id: string) => {
@@ -451,7 +470,7 @@ export const useAppStore = create<AppState>()(
                 ? {
                     ...p,
                     calculatedResults,
-                    updatedAt: new Date().toISOString(),
+                    // NE PAS mettre à jour updatedAt : recalcul != modification
                   }
                 : p
             ),
@@ -480,7 +499,7 @@ export const useAppStore = create<AppState>()(
                 ? {
                     ...p,
                     envelopes: updatedEnvelopes,
-                    updatedAt: new Date().toISOString(),
+                    // NE PAS mettre à jour updatedAt : normalisation auto != modification utilisateur
                   }
                 : p
             ),

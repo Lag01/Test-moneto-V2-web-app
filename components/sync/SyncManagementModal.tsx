@@ -202,6 +202,48 @@ export default function SyncManagementModal({ isOpen, onClose }: SyncManagementM
     });
   };
 
+  const getRelativeTime = (date: Date) => {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return "À l'instant";
+    if (diffMins < 60) return `Il y a ${diffMins} min`;
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `Il y a ${diffHours}h`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `Il y a ${diffDays}j`;
+
+    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+  };
+
+  const getSyncActionIcon = (status: string) => {
+    switch (status) {
+      case 'local_newer':
+        return (
+          <svg className="w-4 h-4 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+          </svg>
+        );
+      case 'cloud_newer':
+        return (
+          <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
+        );
+      case 'synced':
+        return (
+          <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+
   // Séparer les plans locaux selon leur statut
   const localPlansWithStatus = monthlyPlans.map((plan) => ({
     plan,
@@ -261,17 +303,12 @@ export default function SyncManagementModal({ isOpen, onClose }: SyncManagementM
             </div>
           ) : (
             <>
-              {/* Plans locaux */}
+              {/* Vue comparative des plans */}
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                      Plans locaux ({localPlansWithStatus.length})
-                    </h3>
-                  </div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                    Vue comparative ({localPlansWithStatus.length} plans)
+                  </h3>
                   {selectedLocal.size > 0 && (
                     <button
                       onClick={handleUploadSelected}
@@ -286,41 +323,87 @@ export default function SyncManagementModal({ isOpen, onClose }: SyncManagementM
                   )}
                 </div>
 
+                {/* En-tête du tableau */}
+                <div className="grid grid-cols-12 gap-3 mb-2 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                  <div className="col-span-1"></div>
+                  <div className="col-span-3">Plan</div>
+                  <div className="col-span-3 text-center">Local</div>
+                  <div className="col-span-2 text-center">Statut</div>
+                  <div className="col-span-3 text-center">Cloud</div>
+                </div>
+
                 <div className="space-y-2">
                   {localPlansWithStatus.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-400 py-4 text-center">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 py-8 text-center">
                       Aucun plan local
                     </p>
                   ) : (
-                    localPlansWithStatus.map(({ plan, syncInfo }) => (
-                      <div
-                        key={plan.id}
-                        className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 border border-slate-200 dark:border-slate-600"
-                      >
-                        <div className="flex items-start gap-3">
-                          <input
-                            type="checkbox"
-                            checked={selectedLocal.has(plan.id)}
-                            onChange={() => toggleLocalSelection(plan.id)}
-                            className="mt-1"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h4 className="font-semibold text-slate-800 dark:text-slate-100 capitalize">
-                                {getMonthLabel(plan.month)}
-                              </h4>
-                              {syncInfo && <PlanSyncStatusBadge status={syncInfo.status} />}
-                            </div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1">
-                              <p>Dernière modif locale : {new Date(plan.updatedAt).toLocaleString('fr-FR')}</p>
-                              {syncInfo?.cloudUpdatedAt && (
-                                <p>Dernière modif cloud : {syncInfo.cloudUpdatedAt.toLocaleString('fr-FR')}</p>
-                              )}
+                    localPlansWithStatus.map(({ plan, syncInfo }) => {
+                      const status = syncInfo?.status || 'not_synced';
+                      const bgColor =
+                        status === 'synced' ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800' :
+                        status === 'local_newer' ? 'bg-orange-50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-800' :
+                        status === 'cloud_newer' ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800' :
+                        'bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600';
+
+                      return (
+                        <div
+                          key={plan.id}
+                          className={`grid grid-cols-12 gap-3 items-center rounded-lg p-4 border ${bgColor} transition-colors`}
+                        >
+                          {/* Checkbox */}
+                          <div className="col-span-1 flex justify-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedLocal.has(plan.id)}
+                              onChange={() => toggleLocalSelection(plan.id)}
+                              className="w-4 h-4 rounded border-slate-300 dark:border-slate-600"
+                            />
+                          </div>
+
+                          {/* Nom du plan */}
+                          <div className="col-span-3">
+                            <h4 className="font-semibold text-slate-800 dark:text-slate-100 capitalize">
+                              {getMonthLabel(plan.month)}
+                            </h4>
+                          </div>
+
+                          {/* Dernière modif local */}
+                          <div className="col-span-3 text-center">
+                            <div className="flex flex-col items-center gap-1">
+                              <svg className="w-4 h-4 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                              </svg>
+                              <span className="text-xs text-slate-600 dark:text-slate-400">
+                                {getRelativeTime(new Date(plan.updatedAt))}
+                              </span>
                             </div>
                           </div>
+
+                          {/* Statut avec icône */}
+                          <div className="col-span-2 flex flex-col items-center gap-1">
+                            {getSyncActionIcon(status)}
+                            <PlanSyncStatusBadge status={status} size="sm" showLabel={false} />
+                          </div>
+
+                          {/* Dernière modif cloud */}
+                          <div className="col-span-3 text-center">
+                            {syncInfo?.cloudUpdatedAt ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <svg className="w-4 h-4 text-slate-600 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+                                </svg>
+                                <span className="text-xs text-slate-600 dark:text-slate-400">
+                                  {getRelativeTime(syncInfo.cloudUpdatedAt)}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-400 dark:text-slate-500">-</span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
